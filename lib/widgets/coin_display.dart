@@ -1,9 +1,11 @@
+import 'package:coin_base/blocs/coin_price_bloc/coin_price_bloc.dart';
 import 'package:flutter/material.dart';
 
 import '../model/coin.dart';
 import '../pages/coin_page.dart';
 import '../services/coin_repository.dart';
 import 'coin_card.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CoinDisplay extends StatefulWidget {
   const CoinDisplay({Key? key}) : super(key: key);
@@ -39,10 +41,14 @@ class _CoinDisplayState extends State<CoinDisplay> {
                         child: GestureDetector(
                             onTap: () {
                               // Navigate to the coin page
+
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) => CoinPage(coin: coin)));
+                                      builder: (_) => BlocProvider(
+                                          create: (context) => CoinPriceBloc()
+                                            ..add(Start(coin.price)),
+                                          child: CoinPage(coin: coin))));
                             },
                             child: CoinCard(coin: coin))))
                     .toList(),
