@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../blocs/coin_price_bloc/coin_price_bloc.dart';
 import '../model/coin.dart';
 import '../model/coin_data.dart';
 import '../services/coin_repository.dart';
@@ -81,12 +83,16 @@ class _CoinPageState extends State<CoinPage> {
                 "${widget.coin.fullName} price",
                 style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
               ),
-              Text(
-                "\$${_coinPrice.toStringAsFixed(2)}",
-                style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold),
+              BlocBuilder<CoinPriceBloc, CoinPriceState>(
+                builder: (context, state) {
+                  return Text(
+                    "\$${state.coinPrice.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold),
+                  );
+                },
               ),
               const SizedBox(
                 height: 50,
@@ -103,11 +109,11 @@ class _CoinPageState extends State<CoinPage> {
                       maxTime: f[2],
                       minPrice: f[3],
                       minTime: f[4],
-                      priceCallback: (d) {
-                        setState(() {
-                          _coinPrice = d ?? widget.coin.price;
-                        });
-                      },
+                      coinInitialPrice: widget.coin.price,
+                      // priceCallback: (d) {
+                      //   setState(() {
+                      //     _coinPrice = d ?? widget.coin.price;
+                      //   });
                     );
                   }
                   return const Text("Loading");
@@ -199,7 +205,8 @@ class CoinHourlyChart extends StatefulWidget {
   final double maxTime;
   final double minPrice;
   final double minTime;
-  final Function(double?) priceCallback;
+  final double coinInitialPrice;
+  // final Function(double?) priceCallback;
 
   const CoinHourlyChart(
       {required this.flspots,
@@ -207,7 +214,7 @@ class CoinHourlyChart extends StatefulWidget {
       required this.maxTime,
       required this.minPrice,
       required this.minTime,
-      required this.priceCallback,
+      required this.coinInitialPrice,
       Key? key})
       : super(key: key);
 
@@ -232,7 +239,10 @@ class _CoinHourlyChartState extends State<CoinHourlyChart> {
           lineTouchData: LineTouchData(
             enabled: true,
             touchCallback: (c, cc) {
-              widget.priceCallback(cc?.lineBarSpots?[0].y);
+              context.read<CoinPriceBloc>().add(UpdateCoinPrice(
+                  cc?.lineBarSpots?[0].y ?? widget.coinInitialPrice));
+
+              // widget.priceCallback(cc?.lineBarSpots?[0].y);
             },
             touchTooltipData: LineTouchTooltipData(
               tooltipBgColor: Colors.transparent,
